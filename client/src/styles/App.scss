@@ -1,0 +1,45 @@
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family: 'Lucida Grande', 'Segoe UI', Ubuntu, Cantarell, Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  font-size: 1rem;
+}
+
+.container,
+.container-fluid {
+  margin-top: 40px;
+}
+
+label {
+  font-weight: 500;
+}
+
+.list-item {
+  margin-bottom: 40px;
+}
+
+@media screen and (min-width: 768px) {
+  .list-item {
+    margin-bottom: 15px;
+  }
+}
+
+.list-action {
+  svg {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .list-action {
+    svg {
+      display: inherit;
+      margin: 0 7px;
+    }
+  }
+}
