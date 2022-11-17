@@ -3,7 +3,6 @@ import * as morgan from 'morgan';
 import * as bodyParser from 'body-parser';
 import * as cors from 'cors';
 import * as _ from 'lodash';
-import dataSource from './data_access';
 
 import config from './config';
 import routes from './routes/routes';
@@ -22,8 +21,6 @@ function start(port) {
   routes.init(app);
 
   initErrorHandling();
-
-  dataSource.connect();
 
   if (config.isDevLocal) {
     app.use(morgan('dev'));

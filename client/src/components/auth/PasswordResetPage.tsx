@@ -1,5 +1,5 @@
 import {useState, useEffect} from 'react';
-import {Link, useNavigate, useParams} from 'react-router-dom';
+import {Link, useNavigate, useLocation} from 'react-router-dom';
 import {Container, Row, Col, Button} from 'components/bootstrap';
 
 import userActions from 'actions/userActions';
@@ -13,25 +13,24 @@ import TextInput from 'components/common/TextInput';
 function PasswordResetPage() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const {hash} = useLocation();
 
-  const {token} = useParams();
+  const [userData, setUserData] = useState({password: '', confirmPassword: '', token: '', refreshToken: ''});
 
-  const [userData, setUserData] = useState({email: '', password: '', confirmPassword: '', token: ''});
-
-  const [errors, setErrors] = useState({email: '', password: '', confirmPassword: ''});
+  const [errors, setErrors] = useState({password: '', confirmPassword: ''});
 
   useEffect(() => {
-    onCheckResetToken();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (!hash) return;
 
-  async function onCheckResetToken() {
-    const response: CheckResetTokenResponse = await dispatch(userActions.checkResetToken(token));
+    const parsedHash = new URLSearchParams(hash.substring(1));
 
-    if (response?.email && response?.token) {
-      setUserData({email: response.email, token: response.token, password: '', confirmPassword: ''});
+    const token = parsedHash.get('access_token');
+    const refreshToken = parsedHash.get('refresh_token');
+
+    if (token && refreshToken) {
+      setUserData({...userData, token, refreshToken});
     }
-  }
+  }, [hash]);
 
   function onChange(field: string, value) {
     const user = {...userData};
@@ -43,16 +42,9 @@ function PasswordResetPage() {
 
   function resetFormIsValid() {
     const errors = {
-      email: '',
       password: '',
       confirmPassword: ''
     };
-
-    if (!userData.email) {
-      errors.email = 'Email field is required.';
-    } else if (!validationHelper.isValidEmail(userData.email)) {
-      errors.email = 'Email is not valid.';
-    }
 
     if (!userData.password) {
       errors.password = 'Password field is required.';
@@ -88,17 +80,6 @@ function PasswordResetPage() {
       <Row>
         <Col sm={{span: 6, offset: 3}}>
           <h1 className="mb-3">Reset Password</h1>
-
-          <TextInput
-            name="email"
-            label="Email"
-            type="email"
-            disabled={true}
-            value={userData.email}
-            onChange={onChange}
-            placeholder="Email"
-            error={errors.email}
-          />
 
           <TextInput
             name="password"

@@ -25,5 +25,5 @@ async function run(task) {
 }
 
 async function seed() {
-  await dataAccess.createDb();
+  //TODO
 }

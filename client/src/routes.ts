@@ -4,7 +4,6 @@ import LoginPage from './components/auth/LoginPage';
 import SignUpPage from './components/auth/SignUpPage';
 import PasswordForgotPage from './components/auth/PasswordForgotPage';
 import PasswordResetPage from './components/auth/PasswordResetPage';
-import ActivationPage from './components/auth/activation/ActivationPage';
 import NotFountPage from './components/NotFoundPage';
 
 export const routes = [
@@ -60,20 +59,11 @@ export const routes = [
     }
   },
   {
-    path: '/password-reset/:token',
+    path: '/password-reset',
     component: PasswordResetPage,
     pageProps: {
       pageId: 'password_reset',
       title: 'Reset password',
-      public: true
-    }
-  },
-  {
-    path: '/activate/:token',
-    component: ActivationPage,
-    pageProps: {
-      pageId: 'activation',
-      title: 'Account activation',
       public: true
     }
   },

@@ -1,8 +1,8 @@
 import * as _ from 'lodash';
-import * as jwt from 'jsonwebtoken';
 
 let app = null;
 import config from '../config';
+import authRepository from 'repositories/authRepository';
 
 export default {
   init,
@@ -62,7 +62,7 @@ function setOptionsDefaults(options) {
 }
 
 function getAuthenticatedCheckHandler() {
-  return (req, res, next) => {
+  return async (req, res, next) => {
     let header = req.headers['authorization'];
 
     let token = parseTokenFromHeader(header);
@@ -74,17 +74,15 @@ function getAuthenticatedCheckHandler() {
       });
     }
 
-    // decode token
-    // verifies secret and checks exp
-    jwt.verify(token, config.auth.jwtKey, (err, decoded) => {
-      if (err) {
-        return res.status(401).send('Unauthorized');
-      }
+    const user = await authRepository.getCurrentUser(token);
 
-      req.currentUser = decoded;
+    if (!user) {
+      return res.status(401).send('Unauthorized');
+    }
 
-      return next();
-    });
+    req.currentUser = user;
+
+    return next();
   };
 
   function parseTokenFromHeader(header) {

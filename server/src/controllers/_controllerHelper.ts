@@ -2,15 +2,12 @@ import * as _ from 'lodash';
 import * as Joi from 'joi';
 
 import config from '../config';
-import emailHelper from '../helpers/emailHelper';
 import logger from '../logger';
 
 export default {
   sendData,
   sendFailureMessage,
   loadSchema,
-  sendActivationEmail,
-  sendResetPasswordEmail,
   getCurrentUser
 };
 
@@ -69,7 +66,7 @@ async function loadSchema(data, schemaObject): Promise<any> {
   try {
     let value = await schema.validateAsync(data);
     return value;
-  } catch(err) {
+  } catch (err) {
     let error = null;
 
     if (err.name !== 'ValidationError') {
@@ -85,30 +82,6 @@ async function loadSchema(data, schemaObject): Promise<any> {
 
     return error;
   }
-}
-
-function sendActivationEmail(email, token) {
-  let data = {
-    token,
-    siteRootUrl: config.rootUrl
-  };
-
-  return emailHelper.sendEmailTemplate('activation', data, {
-    to: email,
-    from: config.email.fromNoReply
-  });
-}
-
-function sendResetPasswordEmail(email, token) {
-  let data = {
-    token,
-    siteRootUrl: config.rootUrl
-  };
-
-  return emailHelper.sendEmailTemplate('password_reset', data, {
-    to: email,
-    from: config.email.fromNoReply
-  });
 }
 
 function getCurrentUser(req) {

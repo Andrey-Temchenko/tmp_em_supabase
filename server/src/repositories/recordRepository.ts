@@ -1,9 +1,4 @@
 import * as _ from 'lodash';
-import {map} from 'lodash';
-
-import dbInit from '../database/database';
-
-import {RecordInstance} from '../typings/models/RecordModel';
 
 export default {
   getRecords,
@@ -14,8 +9,8 @@ export default {
   getRecordsByCategoryId
 } as RecordRepository;
 
-const db = dbInit.init();
-const recordModel = db.models.Record;
+const db = null;
+const recordModel = null;
 
 async function getRecords(userId: string, searchQuery: any): Promise<RecordDto[]> {
   const options = {
@@ -80,7 +75,7 @@ async function getRecordsByCategoryId(categoryId: string): Promise<RecordDto[]> 
 
 //helper methods
 
-function mapRecord(recordModel: RecordInstance): RecordDto {
+function mapRecord(recordModel: any): RecordDto {
   if (!recordModel) return null;
 
   const record: RecordDto = {

@@ -5,9 +5,9 @@ import httpHelper from 'helpers/httpHelper';
 export default {
   signUp,
   login,
-  activateAccount,
+  googleLogin,
+  signOut,
   passwordForgot,
-  resetPasswordTokenCheck,
   resetPassword,
   getToken,
   saveToken
@@ -21,16 +21,16 @@ async function login(user): Promise<LoginResponse> {
   return await httpHelper.post('/api/login', user);
 }
 
-async function activateAccount(token: string): Promise<ActivationResponse> {
-  return await httpHelper.get(`/api/activate/${token}`, {});
+async function googleLogin() {
+  return await httpHelper.post('/api/google-login', {});
+}
+
+async function signOut() {
+  return await httpHelper.post('/api/sign-out', {});
 }
 
 async function passwordForgot(email: string): Promise<AuthResponse> {
   return await httpHelper.post('/api/password-forgot', {email});
-}
-
-async function resetPasswordTokenCheck(token: string): Promise<CheckResetTokenResponse> {
-  return await httpHelper.get(`/api/password-reset/${token}`, {});
 }
 
 async function resetPassword(user): Promise<AuthResponse> {

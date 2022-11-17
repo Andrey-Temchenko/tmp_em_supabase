@@ -1,8 +1,5 @@
 import * as _ from 'lodash';
 
-import dbInit from '../database/database';
-import {CategoryInstance} from '../typings/models/CategoryModel';
-
 export default {
   getCategoryById,
   getCategories,
@@ -11,8 +8,8 @@ export default {
   removeCategory
 } as CategoryRepository;
 
-const db = dbInit.init();
-const categoryModel = db.models.Category;
+const db = null;
+const categoryModel = null;
 
 async function getCategoryById(id: string): Promise<CategoryDto> {
   const category = await categoryModel.findByPk(id);
@@ -63,7 +60,7 @@ async function removeCategory(id: string): Promise<any> {
 
 //helper methods
 
-function mapCategory(categoryModel: CategoryInstance): CategoryDto {
+function mapCategory(categoryModel: any): CategoryDto {
   if (!categoryModel) return null;
 
   const category: CategoryDto = {

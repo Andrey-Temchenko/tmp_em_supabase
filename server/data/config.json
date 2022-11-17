@@ -1,37 +1,8 @@
 {
   "port": 5010,
   "rootUrl": "http://localhost:5010",
-  "auth": {
-    "jwtKey": "override_in_local_config_!!!"
-  },
-  "dataAccess": {
-    "seedOnStart": false,
-    "dataSource": "sequelize"
-  },
-  "dataSources": {
-    "mongo": {
-      "host": "localhost",
-      "port": 27017,
-      "name": "expense_manager",
-      "username": "",
-      "password": "",
-      "timeout": 5000
-    },
-    "sequelize": {
-      "host": "localhost",
-      "port": 0,
-      "name": "expense_manager",
-      "dialect": "sqlite",
-      "username": "",
-      "password": ""
-    }
-  },
-  "email": {
-    "useStubs": true,
-    "auth": {
-      "user": "???",
-      "password": "???"
-    },
-    "fromNoReply": "noreply@buildapp.com"
+  "database": {
+    "supabaseUrl": "https://hsqbwzelmicbprbhwxok.supabase.co",
+    "supabaseKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhzcWJ3emVsbWljYnByYmh3eG9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE2Njg1MDU0OTYsImV4cCI6MTk4NDA4MTQ5Nn0.fUt-H7Zmc5HM823ZviZTWHqgu6aH41PBBLbA0ViGZrY"
   }
 }

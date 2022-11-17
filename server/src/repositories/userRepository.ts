@@ -1,9 +1,6 @@
 import * as crypto from 'crypto';
 
-import dbInit from '../database/database';
 import AppError from 'appError';
-
-import {UserInstance} from '../typings/models/UserModel';
 
 export default {
   getUserByEmail,
@@ -22,9 +19,8 @@ export default {
   refreshResetToken
 };
 
-const db = dbInit.init();
-
-const userModel = db.models.User;
+const db = null;
+const userModel = null;
 
 async function getUserByEmail(email): Promise<UserDto> {
   const options = {
@@ -202,11 +198,11 @@ function generateActivationToken(): string {
 
 //helper methods
 
-async function getUserModelById(id): Promise<UserInstance> {
+async function getUserModelById(id): Promise<any> {
   return await userModel.findByPk(id);
 }
 
-async function getUserModelByEmail(email): Promise<UserInstance> {
+async function getUserModelByEmail(email): Promise<any> {
   const options = {
     where: {
       email
@@ -216,7 +212,7 @@ async function getUserModelByEmail(email): Promise<UserInstance> {
   return await userModel.findOne(options);
 }
 
-function mapUser(userModel: UserInstance): UserDto {
+function mapUser(userModel: any): UserDto {
   if (!userModel) return null;
 
   const record: UserDto = {

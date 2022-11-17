@@ -2,7 +2,8 @@ import * as Joi from 'joi';
 
 import AppError from '../appError';
 import helper from './_controllerHelper';
-import {userRepository, categoryRepository, recordRepository} from '../data_access';
+import dataAccess from '../data_access';
+import authRepository from 'repositories/authRepository';
 
 export default {
   currentUser,
@@ -16,9 +17,7 @@ export default {
 
 async function currentUser(req, res) {
   try {
-    let userId = helper.getCurrentUser(req).id;
-
-    let user = await userRepository.getUserById(userId);
+    const user = await authRepository.getCurrentUser();
 
     return helper.sendData(user, res);
   } catch (err) {
@@ -28,9 +27,10 @@ async function currentUser(req, res) {
 
 async function categoryList(req, res) {
   try {
-    const userId: string = helper.getCurrentUser(req).id;
+    // const userId: string = helper.getCurrentUser(req).id;
 
-    const categories = await categoryRepository.getCategories(userId);
+    // const categories = await dataAccess.categoryRepository.getCategories(userId);
+    const categories = [];
 
     return helper.sendData(categories, res);
   } catch (err) {
@@ -57,9 +57,9 @@ async function saveCategory(req, res) {
     if (data.category.id) {
       await assertUserOwnsCategory(userId, data.category.id);
 
-      category = await categoryRepository.updateCategory(data.category);
+      category = await dataAccess.categoryRepository.updateCategory(data.category);
     } else {
-      category = await categoryRepository.addCategory(userId, data.category);
+      category = await dataAccess.categoryRepository.addCategory(userId, data.category);
     }
 
     return helper.sendData(category, res);
@@ -78,7 +78,7 @@ async function deleteCategory(req, res) {
 
     await assertCategoryHasNoRecords(data.id);
 
-    await categoryRepository.removeCategory(data.id);
+    await dataAccess.categoryRepository.removeCategory(data.id);
 
     return helper.sendData({}, res);
   } catch (err) {
@@ -92,9 +92,11 @@ async function recordList(req, res) {
       sortBy: Joi.string().required()
     });
 
-    let userId = helper.getCurrentUser(req).id;
+    //let userId = helper.getCurrentUser(req).id;
 
-    let records = await recordRepository.getRecords(userId, searchQuery);
+    //let records = await dataAccess.recordRepository.getRecords(userId, searchQuery);
+
+    const records = [];
 
     return helper.sendData(records, res);
   } catch (err) {
@@ -123,9 +125,9 @@ async function saveRecord(req, res) {
     if (data.record.id) {
       await assertUserOwnsRecord(userId, data.record.id);
 
-      record = await recordRepository.updateRecord(data.record);
+      record = await dataAccess.recordRepository.updateRecord(data.record);
     } else {
-      record = await recordRepository.addRecord(userId, data.record);
+      record = await dataAccess.recordRepository.addRecord(userId, data.record);
     }
 
     return helper.sendData(record, res);
@@ -142,7 +144,7 @@ async function deleteRecord(req, res) {
 
     await assertUserOwnsRecord(helper.getCurrentUser(req).id, data.id);
 
-    await recordRepository.removeRecord(data.id);
+    await dataAccess.recordRepository.removeRecord(data.id);
 
     return helper.sendData({}, res);
   } catch (err) {
@@ -151,7 +153,7 @@ async function deleteRecord(req, res) {
 }
 
 async function assertUserOwnsCategory(userId: string, categoryId: string) {
-  const category = await categoryRepository.getCategoryById(categoryId);
+  const category = await dataAccess.categoryRepository.getCategoryById(categoryId);
 
   const hasRights = category && category.userId === userId;
 
@@ -159,7 +161,7 @@ async function assertUserOwnsCategory(userId: string, categoryId: string) {
 }
 
 async function assertUserOwnsRecord(userId, recordId) {
-  let record = await recordRepository.getRecordById(recordId);
+  let record = await dataAccess.recordRepository.getRecordById(recordId);
 
   let hasRights = record && record.userId.toString() === userId.toString();
 
@@ -167,7 +169,7 @@ async function assertUserOwnsRecord(userId, recordId) {
 }
 
 async function assertCategoryHasNoRecords(categoryId) {
-  let records = await recordRepository.getRecordsByCategoryId(categoryId);
+  let records = await dataAccess.recordRepository.getRecordsByCategoryId(categoryId);
 
   let hasRecords = records && records.length;
 

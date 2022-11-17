@@ -1,19 +1,15 @@
-import * as bcrypt from 'bcrypt-nodejs';
 import * as Joi from 'joi';
-import * as dateFns from 'date-fns';
-import * as jwt from 'jsonwebtoken';
 
 import helper from './_controllerHelper';
-import {userRepository} from '../data_access';
 import AppError from '../appError';
-import config from '../config';
+import authRepository from 'repositories/authRepository';
 
 export default {
   signUpPost,
   loginPost,
-  activate,
+  googleLogin,
+  signOut,
   forgotPassword,
-  resetPassword,
   resetPasswordPost
 };
 
@@ -32,20 +28,13 @@ async function signUpPost(req, res) {
     //Use lower-case e-mails to avoid case-sensitive e-mail matching
     userData.email = userData.email.toLowerCase();
 
-    if (helper.getCurrentUser(req)) throw new AppError('Log out before signing up.');
+    const currentUser = await authRepository.getCurrentUser();
 
-    let localUser = await userRepository.getLocalUserByEmail(userData.email);
+    if (currentUser) throw new AppError('Log out before signing up.');
 
-    let alreadyActivated = localUser && localUser.profile.local.isActivated;
-    if (alreadyActivated) throw new AppError('This email is already activated.');
+    await authRepository.signUp(userData);
 
-    let user = await userRepository.getUserByEmail(userData.email);
-
-    user = await userRepository.saveLocalAccount(user, userData);
-
-    await helper.sendActivationEmail(user.email, user.profile.local.activation.token);
-
-    let message = 'Activation email was send. Please, check you inbox.';
+    const message = 'Activation email was send. Please, check you inbox.';
 
     return helper.sendData({message}, res);
   } catch (err) {
@@ -55,40 +44,17 @@ async function signUpPost(req, res) {
 
 async function loginPost(req, res) {
   try {
-    let loginSuccess = true;
-
     const userData = await helper.loadSchema(req.body, {
       email: Joi.string().email().required(),
       password: Joi.string().required()
     });
 
-    const user = await userRepository.getLocalUserByEmail(userData.email.toLowerCase());
+    const {user, session} = await authRepository.signInWithPassword(userData);
 
-    if (!user) throw new AppError('The email address or password that you entered is not valid');
- 
-    if (!user.profile.local.isActivated)
-      throw new AppError(
-        'Your account is not activated yet. Please check your email for activation letter or sign up again to get a new one.'
-      );
-
-    if (user) {
-      let isValidPassword = bcrypt.compareSync(userData.password, user.profile.local.password);
-
-      if (!isValidPassword) loginSuccess = false;
-    } else {
-      loginSuccess = false;
-    }
-
-    if (!loginSuccess) {
-      throw new AppError('The email address or password that you entered is not valid');
-    }
-
-    const token = jwt.sign(JSON.parse(JSON.stringify(user)), config.auth.jwtKey, {
-      expiresIn: config.auth.expiry
-    });
+    const {access_token} = session;
 
     const result = {
-      token,
+      token: access_token,
       user
     };
 
@@ -98,49 +64,23 @@ async function loginPost(req, res) {
   }
 }
 
-async function activate(req, res) {
+async function googleLogin(req, res) {
   try {
-    let data = {};
+    const data = await authRepository.signInWithOAuth();
 
-    let token = req.params.token;
-
-    let localUser = await userRepository.getUserByActivationToken(token);
-
-    if (!localUser) {
-      data = {
-        message: 'Wrong activation token.',
-        status: 'error'
-      };
-
-      return helper.sendData(data, res);
-    }
-
-    let activationTime = localUser.profile.local.activation.created;
-    let isTokenExpired = dateFns.differenceInHours(activationTime, new Date()) > 24;
-
-    if (isTokenExpired) {
-      let user = await userRepository.refreshActivationToken(localUser.id);
-
-      await helper.sendActivationEmail(user.email, user.profile.local.activation.token);
-
-      data = {
-        message: 'Activation token has expired. New activation email was send.',
-        status: 'warning'
-      };
-
-      return helper.sendData(data, res);
-    } else {
-      await userRepository.activateUser(localUser.id);
-
-      data = {
-        message: 'Your account was successfully activated.',
-        status: 'success'
-      };
-
-      return helper.sendData(data, res);
-    }
+    return helper.sendData({url: data?.url}, res);
   } catch (err) {
-    return helper.sendFailureMessage(err, res);
+    helper.sendFailureMessage(err, res);
+  }
+}
+
+async function signOut(req, res) {
+  try {
+    await authRepository.signOut();
+
+    return helper.sendData({}, res);
+  } catch (err) {
+    helper.sendFailureMessage(err, res);
   }
 }
 
@@ -152,13 +92,7 @@ async function forgotPassword(req, res) {
 
     const email = data.email.toLowerCase();
 
-    const localUser = await userRepository.getLocalUserByEmail(email);
-
-    if (!localUser) throw new AppError('There is no user with provided email.');
-
-    const updatedUser = await userRepository.resetPassword(localUser.id);
-
-    await helper.sendResetPasswordEmail(updatedUser.email, updatedUser.profile.local.reset.token);
+    await authRepository.resetPasswordForEmail(email);
 
     const message = `We've just dropped you an email. Please check your mail to reset your password. Thanks!`;
 
@@ -168,37 +102,20 @@ async function forgotPassword(req, res) {
   }
 }
 
-async function resetPassword(req, res) {
-  try {
-    let token = req.params.token;
-
-    let localUser = await getUserByResetToken(token);
-
-    let data = {
-      email: localUser.email,
-      token
-    };
-
-    return helper.sendData(data, res);
-  } catch (err) {
-    helper.sendFailureMessage(err, res);
-  }
-}
-
 async function resetPasswordPost(req, res) {
   try {
     const data = await helper.loadSchema(req.body, {
-      email: Joi.string().email().required(),
       password: Joi.string().required(),
       confirmPassword: Joi.string().required(),
-      token: Joi.string().required()
+      token: Joi.string().required(),
+      refreshToken: Joi.string().required()
     });
 
     if (data.password !== data.confirmPassword) throw new AppError('Passwords do not match.');
 
-    const localUser = await getUserByResetToken(data.token);
+    await authRepository.setSession(data.token, data.refreshToken);
 
-    await userRepository.updateUserPassword(localUser?.id, data.password);
+    await authRepository.resetPassword(data.password);
 
     const message = 'Your password was reset successfully.';
 
@@ -206,26 +123,4 @@ async function resetPasswordPost(req, res) {
   } catch (err) {
     helper.sendFailureMessage(err, res);
   }
-}
-
-async function getUserByResetToken(token) {
-  if (!token) throw new AppError('No reset token provided.');
-
-  const localUser = await userRepository.getUserByResetToken(token);
-
-  if (!localUser) throw new AppError('Wrong reset password token.');
-
-  const activationTime = localUser.profile.local.reset.created;
-
-  const isTokenExpired = dateFns.differenceInHours(activationTime, new Date()) > 24;
-
-  if (isTokenExpired) {
-    const user = await userRepository.refreshResetToken(localUser.id);
-
-    await helper.sendResetPasswordEmail(user.email, user.profile.local.reset.token);
-
-    throw new AppError('Reset password token has expired. New activation email was send.');
-  }
-
-  return localUser;
 }

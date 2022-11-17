@@ -12,9 +12,8 @@ export default {
   logOut,
   forgotPassword,
   resetPassword,
-  activateUserAccount,
   signUp,
-  checkResetToken
+  googleLogin
 };
 
 function getCurrentUser() {
@@ -38,6 +37,7 @@ function loginUser(user) {
 
 function logOut() {
   return helper.dispatchAsyncAction(async dispatch => {
+    await authService.signOut();
     dispatch(loadCurrentUser(undefined));
     authService.saveToken(undefined);
   });
@@ -58,13 +58,6 @@ function resetPassword(userData) {
   });
 }
 
-function activateUserAccount(token) {
-  return helper.dispatchAsyncAction(async () => {
-    const response = await authService.activateAccount(token);
-    return response;
-  });
-}
-
 function signUp(user) {
   return helper.dispatchAsyncAction(async () => {
     const response = await authService.signUp(user);
@@ -72,9 +65,9 @@ function signUp(user) {
   });
 }
 
-function checkResetToken(token) {
+function googleLogin() {
   return helper.dispatchAsyncAction(async () => {
-    const response = await authService.resetPasswordTokenCheck(token);
+    const response = await authService.googleLogin();
     return response;
   });
 }
