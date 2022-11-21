@@ -2,8 +2,15 @@
   "port": 5010,
   "rootUrl": "http://localhost:5010",
   "database": {
-    "supabaseUrl": "https://hsqbwzelmicbprbhwxok.supabase.co",
-    "supabaseKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhzcWJ3emVsbWljYnByYmh3eG9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE2Njg1MDU0OTYsImV4cCI6MTk4NDA4MTQ5Nn0.fUt-H7Zmc5HM823ZviZTWHqgu6aH41PBBLbA0ViGZrY",
-    "supabaseServiceRole": ""
+    "user": "postgres",
+    "host": "db.hsqbwzelmicbprbhwxok.supabase.co",
+    "database": "postgres",
+    "password": "",
+    "port": 5432
+  },
+  "supabase": {
+    "url": "https://hsqbwzelmicbprbhwxok.supabase.co",
+    "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhzcWJ3emVsbWljYnByYmh3eG9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE2Njg1MDU0OTYsImV4cCI6MTk4NDA4MTQ5Nn0.fUt-H7Zmc5HM823ZviZTWHqgu6aH41PBBLbA0ViGZrY",
+    "serviceRole": ""
   }
 }

@@ -42,6 +42,7 @@
     "lodash": "4.17.21",
     "mongoose": "6.6.5",
     "morgan": "1.10.0",
+    "pg": "8.8.0",
     "winston": "3.8.2"
   },
   "devDependencies": {

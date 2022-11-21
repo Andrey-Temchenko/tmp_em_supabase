@@ -7,9 +7,16 @@ let config = {
   appVersion: '0.0.1',
   rootUrl: 'http://localhost:3000',
   database: {
-    supabaseUrl: '',
-    supabaseKey: '',
-    supabaseServiceRole: ''
+    user: '',
+    host: '',
+    database: '',
+    password: '',
+    port: ''
+  },
+  supabase: {
+    url: '',
+    key: '',
+    serviceRole: ''
   }
 };
 

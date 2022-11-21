@@ -5,7 +5,9 @@ import {createClient} from '@supabase/supabase-js';
 import path from 'helpers/pathHelper';
 import config from './config';
 
-const supabase = createClient(config.database.supabaseUrl, config.database.supabaseServiceRole);
+const {Client} = require('pg');
+
+const supabase = createClient(config.supabase.url, config.supabase.serviceRole);
 
 export default {
   seedData
@@ -16,6 +18,8 @@ async function seedData() {
   const seedData = await fs.readJson(seedPath);
 
   try {
+    await clearDatabase();
+
     const userLookup = await seedUsers(seedData.users);
     const categoryLookup = await seedCategories(seedData.categories, userLookup);
     await seedRecords(seedData.records, userLookup, categoryLookup);
@@ -83,4 +87,38 @@ async function seedRecords(recordsData, userLookup, categoryLookup) {
 
     if (error) throw new Error(error.message);
   }
+}
+
+async function clearDatabase() {
+  const client = new Client({
+    user: config.database.user,
+    host: config.database.host,
+    database: config.database.database,
+    password: config.database.password,
+    port: config.database.port
+  });
+
+  await client.connect();
+
+  console.log('Connected to DB.');
+
+  await client.query('DELETE FROM record');
+  await client.query('DELETE FROM category');
+
+  const {
+    data: {users},
+    error
+  } = await supabase.auth.admin.listUsers();
+
+  if (error) throw new Error(error.message);
+
+  for (const user of users) {
+    const {data, error} = await supabase.auth.admin.deleteUser(user.id);
+
+    if (error) throw new Error(error.message);
+  }
+
+  await client.end();
+
+  console.log('DB was successfully cleared!');
 }

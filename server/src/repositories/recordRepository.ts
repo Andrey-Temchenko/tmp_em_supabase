@@ -4,7 +4,7 @@ import {createClient} from '@supabase/supabase-js';
 import config from '../config';
 import AppError from 'appError';
 
-const supabase = createClient(config.database.supabaseUrl, config.database.supabaseKey);
+const supabase = createClient(config.supabase.url, config.supabase.key);
 
 const TABLE_NAME = 'record';
 
