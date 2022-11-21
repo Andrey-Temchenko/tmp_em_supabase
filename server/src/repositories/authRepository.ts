@@ -69,10 +69,6 @@ async function resetPasswordForEmail(email: string) {
 }
 
 async function resetPassword(password: string) {
-  await supabase.auth.onAuthStateChange(async (event, session) => {
-    console.log(event, session);
-  });
-
   const {data, error} = await supabase.auth.updateUser({password});
 
   if (error) throw new AppError(error.message);

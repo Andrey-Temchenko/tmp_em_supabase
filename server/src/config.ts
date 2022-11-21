@@ -8,7 +8,8 @@ let config = {
   rootUrl: 'http://localhost:3000',
   database: {
     supabaseUrl: '',
-    supabaseKey: ''
+    supabaseKey: '',
+    supabaseServiceRole: ''
   }
 };
 

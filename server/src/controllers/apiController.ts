@@ -3,7 +3,6 @@ import * as Joi from 'joi';
 import AppError from '../appError';
 import helper from './_controllerHelper';
 import dataAccess from '../data_access';
-import authRepository from 'repositories/authRepository';
 
 export default {
   currentUser,
@@ -17,7 +16,7 @@ export default {
 
 async function currentUser(req, res) {
   try {
-    const user = await authRepository.getCurrentUser();
+    const user = await dataAccess.authRepository.getCurrentUser();
 
     return helper.sendData(user, res);
   } catch (err) {
@@ -27,10 +26,9 @@ async function currentUser(req, res) {
 
 async function categoryList(req, res) {
   try {
-    // const userId: string = helper.getCurrentUser(req).id;
+    const userId: string = helper.getCurrentUser(req).id;
 
-    // const categories = await dataAccess.categoryRepository.getCategories(userId);
-    const categories = [];
+    const categories = await dataAccess.categoryRepository.getCategories(userId);
 
     return helper.sendData(categories, res);
   } catch (err) {
@@ -88,15 +86,13 @@ async function deleteCategory(req, res) {
 
 async function recordList(req, res) {
   try {
-    let searchQuery = await helper.loadSchema(req.query, {
+    const searchQuery = await helper.loadSchema(req.query, {
       sortBy: Joi.string().required()
     });
 
-    //let userId = helper.getCurrentUser(req).id;
+    const userId = helper.getCurrentUser(req).id;
 
-    //let records = await dataAccess.recordRepository.getRecords(userId, searchQuery);
-
-    const records = [];
+    const records = await dataAccess.recordRepository.getRecords(userId, searchQuery);
 
     return helper.sendData(records, res);
   } catch (err) {

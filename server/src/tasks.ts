@@ -1,4 +1,4 @@
-import dataAccess from './data_access';
+import seederDefault from 'seederDefault';
 
 export default {
   run,
@@ -25,5 +25,5 @@ async function run(task) {
 }
 
 async function seed() {
-  //TODO
+  await seederDefault.seedData();
 }

@@ -66,6 +66,10 @@ function PasswordResetPage() {
   async function onResetPassword() {
     if (!resetFormIsValid()) return;
 
+    if (true) {
+      return uiHelper.showWarning('Not implemented.');
+    }
+
     const response: AuthResponse = await dispatch(userActions.resetPassword(userData));
 
     if (response?.message) {

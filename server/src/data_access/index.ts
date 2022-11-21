@@ -1,17 +1,17 @@
 import categoryRepository from 'repositories/categoryRepository';
 import recordRepository from 'repositories/recordRepository';
-import userRepository from 'repositories/userRepository';
+import authRepository from 'repositories/authRepository';
 
 interface DataSource {
   categoryRepository: CategoryRepository;
   recordRepository: RecordRepository;
-  userRepository: UserRepository;
+  authRepository: AuthRepository;
 }
 
 const dataSource: DataSource = {
   categoryRepository,
   recordRepository,
-  userRepository
+  authRepository
 };
 
 export default dataSource;

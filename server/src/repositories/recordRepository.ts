@@ -1,4 +1,12 @@
 import * as _ from 'lodash';
+import {createClient} from '@supabase/supabase-js';
+
+import config from '../config';
+import AppError from 'appError';
+
+const supabase = createClient(config.database.supabaseUrl, config.database.supabaseKey);
+
+const TABLE_NAME = 'record';
 
 export default {
   getRecords,
@@ -9,68 +17,71 @@ export default {
   getRecordsByCategoryId
 } as RecordRepository;
 
-const db = null;
-const recordModel = null;
-
 async function getRecords(userId: string, searchQuery: any): Promise<RecordDto[]> {
-  const options = {
-    where: {
-      userId: userId
-    }
-  };
+  const {data, error} = await supabase.from(TABLE_NAME).select().order(searchQuery.sortBy).match({userId});
 
-  const records = await recordModel.findAll(options);
+  if (error) throw new AppError(error.message);
 
-  return _.sortBy(records, searchQuery.sortBy).map(category => mapRecord(category));
+  return data.map(record => mapRecord(record));
 }
 
 async function getRecordById(id: string): Promise<RecordDto> {
-  const record = await recordModel.findByPk(id);
+  const {data, error} = await supabase.from(TABLE_NAME).select().match({id});
 
-  return mapRecord(record);
+  if (error) throw new AppError(error.message);
+
+  return mapRecord(data[0]);
 }
 
 async function addRecord(userId: string, recordData: Partial<RecordDto>) {
-  recordData.userId = userId;
+  const {data, error} = await supabase
+    .from(TABLE_NAME)
+    .insert({
+      date: recordData.date,
+      cost: recordData.cost,
+      categoryId: recordData.categoryId,
+      note: recordData.note,
+      userId
+    })
+    .select();
 
-  const record = await recordModel.create(recordData);
+  if (error) throw new AppError(error.message);
 
-  return mapRecord(record);
+  return mapRecord(data[0]);
 }
 
 async function updateRecord(recordData: RecordDto): Promise<RecordDto> {
-  const record = await recordModel.findByPk(recordData.id);
+  const id = recordData.id;
+
+  const {data: record, error: recordError} = await supabase.from(TABLE_NAME).select().match({id});
+
+  if (recordError) throw new AppError(recordError.message);
 
   if (!record) return;
 
-  record.date = recordData.date;
-  record.cost = recordData.cost;
-  record.categoryId = recordData.categoryId as any;
-  record.note = recordData.note;
+  const {data, error} = await supabase
+    .from(TABLE_NAME)
+    .update({date: recordData.date, cost: recordData.cost, categoryId: recordData.categoryId, note: recordData.note})
+    .match({id})
+    .select();
 
-  const result = await record.save();
+  if (error) throw new AppError(error.message);
 
-  return mapRecord(result);
+  return mapRecord(data[0]);
 }
 
 async function removeRecord(id: string): Promise<void> {
-  const record = await recordModel.findByPk(id);
+  const {error} = await supabase.from(TABLE_NAME).delete().match({id});
 
-  if (!record) return;
-
-  return await record.destroy();
+  if (error) throw new AppError(error.message);
 }
 
 async function getRecordsByCategoryId(categoryId: string): Promise<RecordDto[]> {
-  const options = {
-    where: {
-      categoryId: categoryId
-    }
-  };
+  const {data, error} = await supabase.from(TABLE_NAME).select().match({categoryId});
 
-  const result = await recordModel.findAll(options);
+  if (error) throw new AppError(error.message);
 
-  return result.map(record => mapRecord(record));
+  return data.map(record => mapRecord(record));
 }
 
 //helper methods
@@ -80,7 +91,7 @@ function mapRecord(recordModel: any): RecordDto {
 
   const record: RecordDto = {
     id: recordModel.id.toString(),
-    date: recordModel.date,
+    date: new Date(recordModel.date),
     cost: recordModel.cost,
     note: recordModel.note,
     categoryId: recordModel.categoryId.toString(),

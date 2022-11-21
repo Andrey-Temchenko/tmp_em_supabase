@@ -1,4 +1,12 @@
 import * as _ from 'lodash';
+import {createClient} from '@supabase/supabase-js';
+
+import config from '../config';
+import AppError from 'appError';
+
+const supabase = createClient(config.database.supabaseUrl, config.database.supabaseKey);
+
+const TABLE_NAME = 'category';
 
 export default {
   getCategoryById,
@@ -8,54 +16,57 @@ export default {
   removeCategory
 } as CategoryRepository;
 
-const db = null;
-const categoryModel = null;
-
 async function getCategoryById(id: string): Promise<CategoryDto> {
-  const category = await categoryModel.findByPk(id);
+  const {data, error} = await supabase.from(TABLE_NAME).select().match({id});
 
-  return mapCategory(category);
+  if (error) throw new AppError(error.message);
+
+  return mapCategory(data[0]);
 }
 
 async function getCategories(userId: string): Promise<CategoryDto[]> {
-  const options = {
-    where: {
-      userId: userId
-    }
-  };
+  const {data, error} = await supabase.from(TABLE_NAME).select().order('title').match({userId});
 
-  const categories = await categoryModel.findAll(options);
+  if (error) throw new AppError(error.message);
 
-  const result = _.sortBy(categories, 'title');
-
-  return result.map(category => mapCategory(category));
+  return data.map(category => mapCategory(category));
 }
 
 async function addCategory(userId: string, categoryData): Promise<CategoryDto> {
-  categoryData.userId = userId;
+  const {data, error} = await supabase
+    .from(TABLE_NAME)
+    .insert({title: categoryData.title, description: categoryData.description, userId})
+    .select();
 
-  const category = await categoryModel.create(categoryData);
+  if (error) throw new AppError(error.message);
 
-  return mapCategory(category);
+  return mapCategory(data[0]);
 }
 
 async function updateCategory(categoryData): Promise<CategoryDto> {
-  const category = await categoryModel.findByPk(categoryData.id);
+  const id = categoryData.id;
+
+  const {data: category, error: categoryError} = await supabase.from(TABLE_NAME).select().match({id});
+
+  if (categoryError) throw new AppError(categoryError.message);
 
   if (!category) return;
 
-  category.title = categoryData.title;
-  category.description = categoryData.description;
+  const {data, error} = await supabase
+    .from(TABLE_NAME)
+    .update({title: categoryData.title, description: categoryData.description})
+    .match({id})
+    .select();
 
-  const result = await category.save();
+  if (error) throw new AppError(error.message);
 
-  return mapCategory(result);
+  return mapCategory(data[0]);
 }
 
 async function removeCategory(id: string): Promise<any> {
-  const category = await categoryModel.findByPk(id);
+  const {error} = await supabase.from(TABLE_NAME).delete().match({id});
 
-  return await category.destroy();
+  if (error) throw new AppError(error.message);
 }
 
 //helper methods

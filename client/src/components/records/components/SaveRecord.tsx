@@ -58,7 +58,7 @@ function SaveRecord({record, categories, save, close, onChange, visible}: Props)
   }
 
   function onDateChange(date) {
-    onChange('date', new Date(date));
+    onChange('date', date[0]);
   }
 
   function render() {
